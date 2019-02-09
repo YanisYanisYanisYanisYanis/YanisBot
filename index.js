@@ -1,77 +1,33 @@
- // Loads everything necessary for the bot to work properly
- const Discord = require('discord.js');
- const client = new Discord.Client();
- const config = require("./config.json");
+// Loads everything necessary for the bot to work properly
+const Discord = require('discord.js');
+const client = new Discord.Client();
+const config = require("./config.json");
 
 
 
 // Logs the bot's tag and the number of server he's on
 client.on('ready', () => {
  console.log(`Logged in as ${client.user.tag} on ${client.guilds.size} servers!`);
+ client.user.setActivity(`${client.guilds.size} servers!`, {type: "WATCHING"});
  });
-// Make the bot says in it's status how many server's it's on
-client.on(`ready`, () => {
-    client.user.setActivity(`${client.guilds.size} servers!`, {type: "WATCHING"})
-})
+
+
 
 // Logs when the bot joins a server and sends a message to the server owner
 client.on(`guildCreate`, guild => {
     console.log(`I just got added to "${guild.name}" ${guild.id}! Owner: ${guild.owner.user.tag}/${guild.owner.id}`)
     guild.owner.send(`Hey! Thank you for adding me to your server!
 For now I'm still being developped, so I don't have a lot of commands available, but I will be able to do more things in the future :D
-If you'd like a list of all the commands available, you just need to send me **??help** !
-Any questions ? Send a DM to my creator <@284699100945842176> !`)
+If you'd like a list of all the commands available, you just need to send me __??help__ !
+Any questions ? Send a DM to my creator <@284699100945842176> !`);
 });
 
 // Logs when the bot leaves a server and sends a message to the server owner
 client.on(`guildDelete`, guild => {
-  guild.owner.send(`Hey, I noticed that you removed me from your server. If you didn't find me useful, that's okay!
-But if it's because you encountered a problem, then you can send a DM to my creator <@284699100945842176>
-He will probably know how to resolve the issue you had.`)
     console.log(`I just got removed from "${guild.name}" ${guild.id}`)
-})
-
-
-
-
-
-
-
-
-// Status command (pretty useless, but it's working, mostly), might need to shorten it
-client.on(`message`, (message) => {
-
-	const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
-	const command = args.shift().toLowerCase();
-
-    // Exits and stops if the message's author is a bot
-    if (message.author.bot) return;
-
-    if (command === `status`) {
-
-    	// Tells the user he needs to use the command on a server in order for it to work
-    	if (message.channel.type === `dm`) return message.author.send(`You can only perform this command on a server!`);
-
-    	// Detects "status" and grabs the role from the sender
-    	let myRole = null;
-    	if (message.content.startsWith(config.prefix + `status`)) {
-        	message.guild.roles.get(config.botaccess);
-        	myRole = message.member.roles.has(config.botaccess)
-    	}
-       
-    	// If the sender doesn't have the role
-    	if (!myRole) {
-        	message.channel.send(`You do not have the right role!`);
-        	console.log(`${message.member.user.tag}/${message.author} has issued ??status and failed!`)
-    	}
-    	else 
-    	{
-
-        // If the sender has the role
-        	message.channel.send(`Working.`);
-        	console.log(`${message.member.user.tag}/${message.author} has issued ??status and succeeded!`);
-    	}
-    }  
+    guild.owner.send(`Hey, I noticed that you removed me from your server. If you didn't find me useful, that's okay!
+But if it's because you encountered a problem, then you can send a DM to my creator <@284699100945842176>
+He will probably know how to resolve the issue you had.`);
 });
 
 
@@ -79,32 +35,46 @@ client.on(`message`, (message) => {
 
 
 
+client.on(`message`, async (message) => {
+
+    // Ignore any message by a bot, or doesn't start with our prefix
+    if (message.author.bot || !message.content.startsWith(config.prefix)) return;
+
+    // To clean it up, and add a bit better validation.
+    const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
+    const command = args.shift().toLowerCase();
+
+    // Help command! :3
+    if (command === 'help') {
+
+    	if (message.channel.type != `dm`) {
+        await message.channel.send('Check your DMs! :-)');
+    	}
+
+        // Added return to prevent the bot checking for any other command.
+        return message.author.send(`Here is a list of all the commands available!
+__??help__ : displays all the available commands for the bots
+__??status__ : displays the status of the bot! (it's useless but I did so I'm proud :D)`);
+    }
 
 
-// Help command
-// There might be a way to shorten this bit, I'll get back to it later
-client.on(`message`, (message) => {
 
-    // Exits and stops if the prefix's not there
-    if (!message.content.startsWith(config.prefix)) return;
 
-    // Exits and stops if the message's author is a bot
-    if(message.author.bot) return;
+    // To prevent reading processing DMs.
+    if (message.channel.type === `dm`) return message.author.send(`You can only perform this command on a server!`);
 
-    // Exits and stops if this command isn't used (to avoid the bot confusing another command with this one)
-    if (!message.content.startsWith(config.prefix + `help`)) return;
+    if (command === `status`) {
+        // Detects "status" and grabs the role from the sender
+        let isAdmin = message.member.permissions.has(`ADMINISTRATOR`);
 
-    // Detects "help"
-    if (message.content.startsWith(config.prefix + `help`)) {
-
-    	// If the command was sent in a server
-    	if (message.channel.type === `text`) {
-      	message.channel.send(`Check your DMs!`)
+        // If the sender doesn't have the role
+        if (!isAdmin) {
+            console.log(`${message.member.user.tag}/${message.author} has issued ??status and failed!`);
+            return message.channel.send(`You do not have the right role!`);
         }
-
-      	message.author.send(`Here is a list of all the commands available!
-**??help** : displays all the available commands for the bots
-**??status** : displays the status of the bot! (it's useless but I did so I'm proud :D)`)
+        // If the sender has the role
+        console.log(`${message.member.user.tag}/${message.author} has issued ??status and succeeded!`);
+        return message.channel.send(`Working.`);
     }
 });
 
@@ -112,3 +82,4 @@ client.on(`message`, (message) => {
 
 // The bot's token (here, in an external config file)
 client.login(config.token);
+
