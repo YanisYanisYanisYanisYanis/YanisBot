@@ -41,40 +41,37 @@ He will probably know how to resolve the issue you had.`)
 // Status command (pretty useless, but it's working, mostly), might need to shorten it
 client.on(`message`, (message) => {
 
-    // 1/2 Tells the user he needs to use the command on a server in order for it to work
-    if (message.channel.type === `dm`)
-    message.author.send(`You can only perform this command on a server!`);
-
-    // 2/2 Exits and stops if the command was sent in DM (Those 2 get triggered by the other commands, I still need to fix that)
-    if (message.channel.type === `dm`) return;
+	const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
+	const command = args.shift().toLowerCase();
 
     // Exits and stops if the message's author is a bot
-    if(message.author.bot) return;
+    if (message.author.bot) return;
 
-    // Exits and stops if the prefix's not there
-    if (!message.content.startsWith(config.prefix)) return;
+    if (command === `status`) {
 
-    // Exits and stops if this command isn't used (to avoid the bot confusing another command with this one)
-    if (!message.content.startsWith(config.prefix + `status`)) return;
+    	// Tells the user he needs to use the command on a server in order for it to work
+    	if (message.channel.type === `dm`) return message.author.send(`You can only perform this command on a server!`);
 
-    // Detects "status" and grabs the role from the sender
-    let myRole = null;
-    if (message.content.startsWith(config.prefix + `status`)) {
-        message.guild.roles.get(config.botaccess);
-        myRole = message.member.roles.has(config.botaccess)
-    }
+    	// Detects "status" and grabs the role from the sender
+    	let myRole = null;
+    	if (message.content.startsWith(config.prefix + `status`)) {
+        	message.guild.roles.get(config.botaccess);
+        	myRole = message.member.roles.has(config.botaccess)
+    	}
        
-    // If the sender doesn't have the role
-    if (!myRole) {
-        message.channel.send(`You do not have the right role!`);
-        console.log(`${message.member.user.tag}/${message.author} has issued ??status and failed!`)
-    }
-    else 
-    {
+    	// If the sender doesn't have the role
+    	if (!myRole) {
+        	message.channel.send(`You do not have the right role!`);
+        	console.log(`${message.member.user.tag}/${message.author} has issued ??status and failed!`)
+    	}
+    	else 
+    	{
+
         // If the sender has the role
-        message.channel.send(`Working.`);
-        console.log(`${message.member.user.tag}/${message.author} has issued ??status and succeeded!`);
-    }        
+        	message.channel.send(`Working.`);
+        	console.log(`${message.member.user.tag}/${message.author} has issued ??status and succeeded!`);
+    	}
+    }  
 });
 
 
@@ -98,19 +95,14 @@ client.on(`message`, (message) => {
     if (!message.content.startsWith(config.prefix + `help`)) return;
 
     // Detects "help"
-    if (message.content.startsWith(config.prefix + `help`))
+    if (message.content.startsWith(config.prefix + `help`)) {
 
-    // If the command was sent in a server
-    if (message.channel.type === `text`) {
-      message.channel.send(`Check your DMs!`)
-      message.author.send(`Here is a list of all the commands available!
-**??help** : displays all the available commands for the bots
-**??status** : displays the status of the bot! (it's useless but I did so I'm proud :D)`)
-    }
-    else
-    {
-      // If the command was sent in DM to the bot
-      message.author.send(`Here is a list of all the commands available!
+    	// If the command was sent in a server
+    	if (message.channel.type === `text`) {
+      	message.channel.send(`Check your DMs!`)
+        }
+
+      	message.author.send(`Here is a list of all the commands available!
 **??help** : displays all the available commands for the bots
 **??status** : displays the status of the bot! (it's useless but I did so I'm proud :D)`)
     }
