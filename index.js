@@ -58,7 +58,7 @@ client.on(`message`, async (message) => {
             // For every guild the bot's on, adds the guild's name to the server variable
             client.guilds.forEach((guild) => {
                 guildNames = (' - ' + guild.name + `\n`);
-                server = server.concat(guildNames)
+                server = server + (guildNames)
             })
             // Sends the final message
             message.channel.send(server);
